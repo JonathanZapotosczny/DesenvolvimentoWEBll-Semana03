@@ -161,16 +161,15 @@ Route::prefix('/aluno')->group(function() {
 
         if ($limite <= count($dados)) {
             $cont = 0;
-            while($cont <= $limite) {
                 foreach($dados as $aluno) {
                     $header .= "<tr>";
                     foreach ($aluno as $key => $value) {
                         $header .= "<td>$value</td>";
-                        $cont++;
                     }
+                    $cont++;
+                    if($cont >= $limite) break;
                     $header .= "</tr>";
                 }
-            }
         }
 
         $header .= "</ul></table>";
