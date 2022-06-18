@@ -282,7 +282,6 @@ Route::prefix('/nota')->group(function() {
     })->name('nota.conceito');
 
     Route::post('conceito/{A}/{B}/{C}', function($a, $b, $c) {
-        @csrf;
         $header = "<table><tr><td><Strong>Matrícula&emsp;</Strong></td><td><Strong>Aluno&emsp;</Strong></td><td><Strong>Nota</Strong></td></tr>";
     
         $dados = array(
