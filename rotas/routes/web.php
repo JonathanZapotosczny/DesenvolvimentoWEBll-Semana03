@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use \Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -82,7 +83,7 @@ Route::prefix('/aluno')->group(function() {
             5 => "Pedro"
         );
 
-        $alunos = "<ol>";
+        $alunos = "<ul>";
         if ($matricula <= count($dados)) {
             $alunos .= "<li>".$dados[$matricula]."</li>";
         }else {
@@ -90,7 +91,7 @@ Route::prefix('/aluno')->group(function() {
         }
 
 
-        $alunos .= "</ol>";
+        $alunos .= "</ul>";
 
         return $alunos;
 
@@ -107,18 +108,21 @@ Route::prefix('/aluno')->group(function() {
             5 => "Pedro"
         );
 
-        $alunos = "<ol>";
+        $flag = false;
+        $alunos = "<ul>";
 
         foreach($dados as $i) {
             if(strcmp($i, $nome) == 0) {
                 $alunos .= "<li>".$nome."</li>";
-            }else {
-                $alunos .= $alunos."<li>NÃO ENCONTRADO!</li>";
-                break;
+                $flag = true;
             }
         }
 
-        $alunos .= "</ol>";
+        if($flag == false) {
+            $alunos .= $alunos."<li>NÃO ENCONTRADO!</li>";
+        }
+
+        $alunos .= "</ul>";
 
         return $alunos;
     })->name('aluno.nome')->where('nome', '[A-Za-z]+');
@@ -133,7 +137,7 @@ Route::prefix('/nota')->group(function() {
     $dados = array(
         array('matricula'=> 1, 'nome'=> "Jonathan", "nota"=> 9),
         array('matricula'=> 2, 'nome'=> "Karoline", "nota"=> 2),
-        array('matricula'=> 3, 'nome'=> "Edevaldo", "nota"=> 10),
+        array('matricula'=> 3, 'nome'=> "Edevaldo", "nota"=> 8),
         array('matricula'=> 4, 'nome'=> "Anderson", "nota"=> 6),
         array('matricula'=> 5, 'nome'=> "Pedro", "nota"=> 4),
     );
@@ -185,7 +189,7 @@ Route::prefix('/nota')->group(function() {
 
     Route::get('lancar/{nota}/{matricula}/{nome?}', function($nota, $matricula, $nome=null) {
 
-        $header = "<table><tr><td><Strong>Matrícula&emsp;</Strong></td><td><Strong>Aluno&emsp;</Strong></td><td><Strong>Nota</Strong></td></tr>";
+        $header = "";
 
         $dados = array(
             array('matricula'=> 1, 'nome'=> "Jonathan", "nota"=> 9),
@@ -196,55 +200,61 @@ Route::prefix('/nota')->group(function() {
         );
 
         $aux = $dados;
+        $flag = false;
 
         if($nome == null) {
 
         $indice = array_search($matricula, array_column($aux, 'matricula'));
-
-        $alterado = [
-            'matricula' => $matricula,
-            'nome' => $dados[$indice]['nome'],
-            'nota' => $nota
-        ];
-
-        $dados[$indice] = $alterado;
+        
+        if($indice != 0) {
+            $alterado = [
+                'matricula' => $matricula,
+                'nome' => $dados[$indice]['nome'],
+                'nota' => $nota
+            ];
+            $dados[$indice] = $alterado;
+        }else {
+            echo "<h2> Matrícula NÃO EXISTE! </h2>";
+            $flag = true;
+        }
 
         }else {
 
             $indice = array_search($nome, array_column($aux, 'nome'));
-            $indiceM = array_search($matricula, array_column($aux, 'matricula'));
 
-            if($indiceM != null) {
+            if($indice != 0) {
             
             $alterado = [
-                'matricula' => $matricula,
-                'nome' => $nome,
+                'matricula' => $dados[$indice]['matricula'],
+                'nome' => $dados[$indice]['nome'],
                 'nota' => $nota
             ];
 
             $dados[$indice] = $alterado;
 
         } else {
-           
-            echo "<h2> Matrícula NÃO EXISTE! </h2>";
+            echo "<h2> Nome NÃO EXISTE! </h2>";
+            $flag = true;
         }
 
         }
 
-        foreach($dados as $aluno) {
-            $header .= "<tr>";
-            foreach ($aluno as $key => $value) {
-                $header .= "<td>$value</td>";
-            }
+        if($flag == false) {
+            $header = "<table><tr><td><Strong>Matrícula&emsp;</Strong></td><td><Strong>Aluno&emsp;</Strong></td><td><Strong>Nota</Strong></td></tr>";
+            foreach($dados as $aluno) {
+                $header .= "<tr>";
+                foreach ($aluno as $key => $value) {
+                    $header .= "<td>$value</td>";
+                }
             $header .= "</tr>";
+            }
         }
-
         $header .= "</ul></table>";
         return $header;
 
-    })->name('nota.lancar');
+    })->name('nota.lancar')->where('nota', '[0-9]+')->where('matricula', '[0-9]+')->where('nome', '[A-Za-z]+');
 
-    Route::get('conceito/{A}/{B}/{C}', function($a, $b, $c) {
+    Route::get('conceito/{a}/{b}/{c}', function($a, $b, $c) {
 
         $header = "<table><tr><td><Strong>Matrícula&emsp;</Strong></td><td><Strong>Aluno&emsp;</Strong></td><td><Strong>Nota</Strong></td></tr>";
     
@@ -279,9 +289,9 @@ Route::prefix('/nota')->group(function() {
         $header .= "</ul></table>";
         return $header;
     
-    })->name('nota.conceito');
+    })->name('nota.conceito')->where('a', '[0-9]+')->where('b', '[0-9]+')->where('c', '[0-9]+');
 
-    Route::post('conceito/{A}/{B}/{C}', function($a, $b, $c) {
+    Route::post('conceito', function(Request $request) {
         $header = "<table><tr><td><Strong>Matrícula&emsp;</Strong></td><td><Strong>Aluno&emsp;</Strong></td><td><Strong>Nota</Strong></td></tr>";
     
         $dados = array(
@@ -290,8 +300,12 @@ Route::prefix('/nota')->group(function() {
             array('matricula'=> 3, 'nome'=> "Carol", "nota"=> 10),
             array('matricula'=> 4, 'nome'=> "Danilo", "nota"=> 6),
             array('matricula'=> 5, 'nome'=> "Ellen", "nota"=> 4),
+
         );
     
+        $a = $request -> A;
+        $b = $request -> B;
+        $c = $request -> C;
      
         foreach($dados as $aluno) {
             if($aluno["nota"] >= $a){
